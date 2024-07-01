@@ -1,9 +1,10 @@
-batch_size = 86 # int(args.batch_size)
+batch_size = 128 # int(args.batch_size)
 block_size = 128
 max_iters = 12000
-learning_rate = 3e-6
-eval_iters = 100
+learning_rate = 3e-4
+eval_iters = 50
 n_embd = 512
-n_head = 8
+n_head = 4
 n_layer = 8
 dropout = 0.22
+save_iters = 1000

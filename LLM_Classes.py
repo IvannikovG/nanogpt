@@ -1,11 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-import mmap
-import random
-import pickle
-import argparse
-from variables import batch_size, block_size, max_iters, learning_rate, eval_iters, n_embd, n_head, n_layer, dropout
+from variables import block_size, n_embd, n_head, n_layer, dropout
 
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'

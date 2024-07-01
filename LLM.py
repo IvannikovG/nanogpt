@@ -1,15 +1,14 @@
 import torch
-import torch.nn as nn
-from torch.nn import functional as F
 import mmap
 import random
 import pickle
-import argparse
-from variables import batch_size, block_size, max_iters, learning_rate, eval_iters, n_embd, n_head, n_layer, dropout
+from variables import batch_size, block_size, max_iters, learning_rate, eval_iters, save_iters
 from LLM_Classes import GPTLanguageModel
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import os
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -82,8 +81,9 @@ def estimate_loss():
     return out
 
 
-# create a PyTorch optimizer
+# create a PyTorch optimizer and
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=10)
 
 # Initialize variables for tracking the minimum loss and storing loss values
 min_loss = float('inf')
@@ -124,30 +124,29 @@ def load_checkpoint(mdl, optim):
         return 0
 
 
-must_train = True
+def get_current_lr(optimizer):
+    for param_group in optimizer.param_groups:
+        return param_group['lr']
+
+
+must_train = False
 
 if __name__ == "__main__" and must_train == True:
     # Set up variables for checkpointing
     checkpoint_dir = './checkpoints'
     os.makedirs(checkpoint_dir, exist_ok=True)
     checkpoint_path = os.path.join(checkpoint_dir, 'checkpoint.pth')  # .pth extension is standard for PyTorch models
-    save_iters = 1000  # Save checkpoint every 1000 iterations
-
-    # Initialize model, optimizer, and other necessary components
-    # Assuming `model` and `optimizer` are already defined
 
     # Determine the starting iteration
     start_iter = load_checkpoint(model, optimizer)
 
     # Training loop with checkpointing
-    max_iters = 10000  # Total number of iterations
-    eval_iters = 100  # Evaluate and print results every 100 iterations
     train_losses = []
     val_losses = []
     min_loss = float('inf')
 
     for iter in tqdm(range(start_iter, max_iters), desc="Training Progress"):
-        if iter % eval_iters == 0:
+        if iter % (eval_iters * 10) == 0:
             losses = estimate_loss()
             train_losses.append(losses['train'])
             val_losses.append(losses['val'])
@@ -158,7 +157,7 @@ if __name__ == "__main__" and must_train == True:
             if min_loss == float('inf'):
                 min_loss = losses['train']
             loss_diff = losses['train'] - min_loss
-            loss_percentage_change = (loss_diff / min_loss) * 100
+            loss_percentage_change = abs((loss_diff / min_loss) * 100)
             print(
                 f"Current train loss: {losses['train']:.6f}, Loss difference: {loss_diff:.6f}, Percentage change: {loss_percentage_change:.2f}%")
 
@@ -166,13 +165,18 @@ if __name__ == "__main__" and must_train == True:
             if losses['train'] < min_loss:
                 min_loss = losses['train']
 
-            if loss_percentage_change <= 1:
+            if loss_percentage_change <= 0.01:
                 print(
                     f"Algorithm has converged at step {iter}. Loss percentage change is {loss_percentage_change:.2f}%")
 
             # Save checkpoint
             if iter % save_iters == 0:
                 save_checkpoint(model, optimizer, iter)
+
+            # Update the scheduler
+            scheduler.step(losses['val'])
+            current_lr = get_current_lr(optimizer)
+            print(f"Current learning rate: {current_lr:.6f}")
 
         # Sample a batch of data
         xb, yb = get_batch('train')

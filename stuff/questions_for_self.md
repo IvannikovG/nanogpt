@@ -574,3 +574,10 @@ generated_chars = decode(model.generate(context.unsqueeze(0), max_new_tokens=100
 print(generated_chars)
 
 ```
+
+### Scheduler
+#### This scheduler reduces the learning rate when a metric has stopped improving.
+#### mode='min' indicates that the learning rate will be reduced when the quantity monitored has stopped decreasing.
+#### factor=0.1 means the learning rate will be reduced by a factor of 10.
+#### patience=10 means the scheduler will wait for 10 epochs without improvement before reducing the learning rate.
+#### verbose=True will print a message to the console whenever the learning rate is reduced.
