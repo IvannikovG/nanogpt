@@ -149,7 +149,7 @@ if __name__ == "__main__" and must_train == True:
     min_loss = float('inf')
 
     for iter in tqdm(range(start_iter, max_iters), desc="Training Progress"):
-        if iter % (eval_iters * 10) == 0:
+        if iter % (eval_iters * 10) == 0 and iter != 0:
             losses = estimate_loss()
             train_losses.append(losses['train'])
             val_losses.append(losses['val'])

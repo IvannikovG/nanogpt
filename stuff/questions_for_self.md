@@ -581,3 +581,12 @@ print(generated_chars)
 #### factor=0.1 means the learning rate will be reduced by a factor of 10.
 #### patience=10 means the scheduler will wait for 10 epochs without improvement before reducing the learning rate.
 #### verbose=True will print a message to the console whenever the learning rate is reduced.
+
+
+### Understanding Loss Behavior During Training
+#### Initial Rapid Decrease:
+##### At the beginning of training, the model's parameters are far from their optimal values. During this phase, each gradient update leads to significant improvements, causing a rapid decrease in loss.
+#### Slowing Down:
+##### As training progresses, the model parameters approach a local minimum of the loss function. Gradient updates start to result in smaller improvements, leading to a slower decrease in loss. This phase often looks like a plateau when plotted.
+#### Convergence:
+##### Eventually, the loss might converge to a value where further training does not significantly decrease the loss. This indicates that the model is reaching its capacity to minimize the training loss given the current learning rate and architecture.
