@@ -2,7 +2,7 @@ import torch
 import mmap
 import random
 import pickle
-from variables import batch_size, block_size, max_iters, learning_rate, eval_iters, save_iters
+from variables import batch_size, block_size, max_iters, learning_rate, eval_iters, save_iters, file_to_use, vocab_to_use
 from LLM_Classes import GPTLanguageModel
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -15,7 +15,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(device)
 
 chars = ""
-with open("project_data/vocab.txt", 'r', encoding='utf-8') as f:
+with open(vocab_to_use, 'r', encoding='utf-8') as f:
     text = f.read()
     chars = sorted(list(set(text)))
 
@@ -23,13 +23,47 @@ vocab_size = len(chars)
 
 string_to_int = {ch: i for i, ch in enumerate(chars)}
 int_to_string = {i: ch for i, ch in enumerate(chars)}
-encode = lambda s: [string_to_int[c] for c in s]
-decode = lambda l: ''.join([int_to_string[i] for i in l])
+# encode = lambda s: [string_to_int[c] for c in s]
+# decode = lambda l: ''.join([int_to_string[i] for i in l])
+
+
+def encode(s):
+    return torch.tensor([string_to_int[c] for c in s], dtype=torch.long)
+
+
+# PyTorch tensor-based decode function
+def decode(tensor):
+    return ''.join([int_to_string[i.item()] for i in tensor])
+
+
+with open(file_to_use, 'r', encoding='utf-8') as file:
+    data = file.readlines()  # Reading line by line
+
+# Shuffle the data
+random.shuffle(data)
+
+# Define the split ratio
+train_ratio = 0.8
+train_size = int(len(data) * train_ratio)
+
+# Split the data
+train_data = data[:train_size]
+test_data = data[train_size:]
+
+# Save the training data to a new file
+with open('project_data/train_data.txt', 'w', encoding='utf-8') as train_file:
+    train_file.writelines(train_data)
+
+# Save the test data to a new file
+with open('project_data/test_data.txt', 'w', encoding='utf-8') as test_file:
+    test_file.writelines(test_data)
+
+print("Data has been split and saved successfully.")
 
 
 # memory map for using small snippets of text from a single file of any size
 def get_random_chunk(split):
-    filename = "project_data/train_split.txt" if split == 'train' else "project_data/val_split.txt"
+    filename = "project_data/train_data.txt" if split == 'train' else "project_data/test_data.txt"
     with open(filename, 'rb') as f:
         with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
             # Determine the file size and a random position to start reading
@@ -44,16 +78,16 @@ def get_random_chunk(split):
             decoded_block = block.decode('utf-8', errors='ignore').replace('\r', '')
 
             # Train and test splits
-            data = torch.tensor(encode(decoded_block), dtype=torch.long)
+            result = torch.tensor(encode(decoded_block), dtype=torch.long)
 
-    return data
+    return result
 
 
 def get_batch(split):
     data = get_random_chunk(split)
     ix = torch.randint(len(data) - block_size, (batch_size,))
     x = torch.stack([data[i:i + block_size] for i in ix])
-    y = torch.stack([data[i + 1:i + block_size + 1] for i in ix])
+    y = torch.stack([data[i + 1:i + block_size + 1] for i in ix]) # Peharps it makes sense to crop from sides
     x, y = x.to(device), y.to(device)
     return x, y
 
@@ -64,6 +98,11 @@ model = GPTLanguageModel(vocab_size)
 #     model = pickle.load(f)
 # print('loaded successfully!')
 m = model.to(device)
+
+
+def get_current_lr(optimizer):
+    for param_group in optimizer.param_groups:
+        return param_group['lr']
 
 
 @torch.no_grad()
@@ -126,15 +165,10 @@ def load_checkpoint(mdl, optim):
         return 0
 
 
-
-def get_current_lr(optimizer):
-    for param_group in optimizer.param_groups:
-        return param_group['lr']
-
-
-must_train = False
+must_train = True
 
 if __name__ == "__main__" and must_train == True:
+    print(f'Training loop initialized {file_to_use}')
     # Set up variables for checkpointing
     checkpoint_dir = './checkpoints'
     os.makedirs(checkpoint_dir, exist_ok=True)
