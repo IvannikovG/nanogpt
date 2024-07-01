@@ -181,7 +181,7 @@ Output Layer:          Final contextualized representations
 +------------------------------------+
 ```
 
-![](../drawing_transformers.jpg)
+![](drawing_transformers.jpg)
 
 #### ModuleList =/= Sequential. Sequential is synchronous
 
