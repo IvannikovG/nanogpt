@@ -110,6 +110,7 @@ def save_checkpoint(mdl, optim, itr):
         'model_state_dict': mdl.state_dict(),
         'optimizer_state_dict': optim.state_dict(),
     }, checkpoint_path)
+    print(f"Checkpoint saved at iteration {itr}")
 
 
 def load_checkpoint(mdl, optim):
@@ -121,7 +122,9 @@ def load_checkpoint(mdl, optim):
         print(f"Loaded checkpoint from iteration {iteration}")
         return iteration
     else:
+        print("No checkpoint found. Starting from scratch.")
         return 0
+
 
 
 def get_current_lr(optimizer):
@@ -170,8 +173,7 @@ if __name__ == "__main__" and must_train == True:
                     f"Algorithm has converged at step {iter}. Loss percentage change is {loss_percentage_change:.2f}%")
 
             # Save checkpoint
-            if iter % save_iters == 0:
-                save_checkpoint(model, optimizer, iter)
+            save_checkpoint(model, optimizer, iter)
 
             # Update the scheduler
             scheduler.step(losses['val'])
