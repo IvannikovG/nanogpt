@@ -31,7 +31,7 @@ y = np.linspace(-3, 3, 75)  # Reduced scale
 X, Y = np.meshgrid(x, y)
 
 # Number of iterations
-num_iterations = 20  # Reduced number of iterations
+num_iterations = 10  # Reduced number of iterations
 
 # Generate frames for the GIF
 frames = []
