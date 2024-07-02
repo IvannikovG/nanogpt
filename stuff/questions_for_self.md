@@ -590,3 +590,9 @@ print(generated_chars)
 ##### As training progresses, the model parameters approach a local minimum of the loss function. Gradient updates start to result in smaller improvements, leading to a slower decrease in loss. This phase often looks like a plateau when plotted.
 #### Convergence:
 ##### Eventually, the loss might converge to a value where further training does not significantly decrease the loss. This indicates that the model is reaching its capacity to minimize the training loss given the current learning rate and architecture.
+
+#### Large language models can produce different outputs for the same input due to random sampling techniques, such as temperature, top-k, and top-p sampling, used during token generation. This inherent randomness introduces variability even with identical model parameters and probability distributions.
+#### Quantization in large language models involves reducing the precision of weights and activations from higher-bit representations (e.g., 32-bit floating-point) to lower-bit formats (e.g., 8-bit integers) to decrease memory usage, computational load, and improve inference speed. While it can slightly reduce model accuracy, it significantly enhances efficiency, making large models more practical for deployment.
+
+#### 
+#### In the realm of deep learning, text serves as raw ore, brimming with potential information. Through the intricate process of training, deep learning models refine this raw material into valuable insights—represented by learned parameters. These parameters, akin to refined materials, embody the essence of the text's meaning and structure, enabling models to weave increasingly finer nets of understanding. The quality of these refined parameters directly impacts the model's ability to generate coherent text and perform complex language tasks with precision and nuance.
