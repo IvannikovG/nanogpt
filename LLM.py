@@ -2,7 +2,7 @@ import torch
 import mmap
 import random
 import pickle
-from variables import batch_size, block_size, max_iters, learning_rate, eval_iters, save_iters, file_to_use, vocab_to_use
+from variables import batch_size, block_size, max_iters, learning_rate, eval_iters, save_iters, files_to_use, vocab_to_use
 from LLM_Classes import GPTLanguageModel
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -28,7 +28,7 @@ int_to_string = {i: ch for i, ch in enumerate(chars)}
 
 
 def encode(s):
-    return torch.tensor([string_to_int[c] for c in s], dtype=torch.long)
+    return torch.tensor([get(string_to_int, c, 777) for c in s], dtype=torch.long)
 
 
 # PyTorch tensor-based decode function
@@ -121,7 +121,7 @@ def estimate_loss():
 
 
 # create a PyTorch optimizer and
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, threshold=1e-5)
 scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=10)
 
 # Initialize variables for tracking the minimum loss and storing loss values

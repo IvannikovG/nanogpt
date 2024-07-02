@@ -8,5 +8,10 @@ n_head = 6 # is enough. For BIG ones 12+, rarest cases for real fat ones is 96
 n_layer = 8
 dropout = 0.22
 save_iters = 1000
-file_to_use = 'project_data/wizard_of_oz.txt'
 vocab_to_use = 'project_data/vocab.txt'
+files_to_use = [
+    'project_data/wizard_of_jules_short.txt',
+    'project_data/wizard_od_jules_short1.txt',
+    'project_data/wizard_od_jules_short2.txt',
+    'project_data/wizard_od_jules_short3.txt'
+]
