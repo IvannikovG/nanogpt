@@ -15,6 +15,7 @@ os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(device)
+1
 
 # Read all files and combine their contents
 def read_files(files):
@@ -23,6 +24,7 @@ def read_files(files):
         with open(file, 'r', encoding='utf-8') as f:
             data.extend(f.readlines())
     return data
+
 
 # Read and combine all data
 all_data = read_files(files_to_use)
@@ -54,13 +56,16 @@ vocab_size = len(chars)
 string_to_int = {ch: i for i, ch in enumerate(chars)}
 int_to_string = {i: ch for i, ch in enumerate(chars)}
 
+
 def encode(s):
     encoded = [string_to_int.get(c, 777) for c in s]
     assert all(0 <= i < vocab_size for i in encoded), "Found index out of bounds in encoding"
     return torch.tensor(encoded, dtype=torch.long)
 
+
 def decode(tensor):
     return ''.join([int_to_string[i.item()] for i in tensor])
+
 
 # Memory map for using small snippets of text from a single file of any size
 def get_random_chunk(split):
@@ -75,6 +80,7 @@ def get_random_chunk(split):
             result = torch.tensor(encode(decoded_block), dtype=torch.long)
     return result
 
+
 def get_batch(split):
     data = get_random_chunk(split)
     ix = torch.randint(len(data) - block_size, (batch_size,))
@@ -83,8 +89,8 @@ def get_batch(split):
     x, y = x.to(device), y.to(device)
     return x, y
 
-model = GPTLanguageModel(vocab_size)
 
+model = GPTLanguageModel(vocab_size)
 
 # Debug: Check if the model can handle dummy data
 try:
@@ -96,9 +102,11 @@ except Exception as e:
 
 m = model.to(device)
 
+
 def get_current_lr(optimizer):
     for param_group in optimizer.param_groups:
         return param_group['lr']
+
 
 @torch.no_grad()
 def estimate_loss():
@@ -114,12 +122,14 @@ def estimate_loss():
     model.train()
     return out
 
+
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=10, threshold=1e-5)
 
 min_loss = float('inf')
 train_losses = []
 val_losses = []
+
 
 def plot_losses(train_losses, val_losses):
     plt.figure(figsize=(10, 5))
@@ -131,6 +141,7 @@ def plot_losses(train_losses, val_losses):
     plt.title('Training and Validation Loss Over Time')
     plt.show()
 
+
 def save_checkpoint(mdl, optim, itr):
     torch.save({
         'iteration': itr,
@@ -138,6 +149,7 @@ def save_checkpoint(mdl, optim, itr):
         'optimizer_state_dict': optim.state_dict(),
     }, checkpoint_path)
     print(f"Checkpoint saved at iteration {itr}")
+
 
 def load_checkpoint(mdl, optim):
     if os.path.exists(checkpoint_path):
@@ -150,6 +162,7 @@ def load_checkpoint(mdl, optim):
     else:
         print("No checkpoint found. Starting from scratch.")
         return 0
+
 
 must_train = True
 
@@ -177,13 +190,15 @@ if __name__ == "__main__" and must_train:
                 min_loss = losses['train']
             loss_diff = losses['train'] - min_loss
             loss_percentage_change = abs((loss_diff / min_loss) * 100)
-            print(f"Current train loss: {losses['train']:.6f}, Loss difference: {loss_diff:.6f}, Percentage change: {loss_percentage_change:.2f}%")
+            print(
+                f"Current train loss: {losses['train']:.6f}, Loss difference: {loss_diff:.6f}, Percentage change: {loss_percentage_change:.2f}%")
 
             if losses['train'] < min_loss:
                 min_loss = losses['train']
 
             if loss_percentage_change <= 0.01:
-                print(f"Algorithm has converged at step {iter}. Loss percentage change is {loss_percentage_change:.2f}%")
+                print(
+                    f"Algorithm has converged at step {iter}. Loss percentage change is {loss_percentage_change:.2f}%")
 
             save_checkpoint(model, optimizer, iter)
             scheduler.step(losses['val'])
